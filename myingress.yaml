@@ -1,0 +1,19 @@
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: bmx-billing-report-ingress
+
+spec:
+  tls:
+    - hosts:
+      - kubetest.us-south.containers.mybluemix.net
+      secretName: kubetest
+  rules:
+  - host: kubetest.us-south.containers.mybluemix.net
+    http:
+      paths:
+      - path: /
+        backend:
+          serviceName: bmx-billing-report-service
+          servicePort: 5000
+

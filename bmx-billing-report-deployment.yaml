@@ -1,0 +1,16 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: bmx-billing-report-deployment
+spec:
+  replicas: 2
+  template:
+    metadata:
+      labels:
+        app: bmx-billing-report
+    spec:
+      containers:
+      - name: bmx-billing-report
+        image: registry.ng.bluemix.net/jonhall/bmxbillingreport:latest
+        ports:
+        - containerPort: 5000

@@ -1,0 +1,18 @@
+{% extends "layout.html" %}
+
+{% block body %}
+  <h2>Credentials</h2>
+  <form action="{{ url_for('getInvoice') }}" method=post>
+    <dl>
+      <dt>Username:
+      <dd><input type=text name=username>
+      <dt>apiKey:
+      <dd><input type=text name=apiKey><br>
+      <dt><br>Start Invoice Date (MM/DD/YYYY):
+      <dd><input type=text name=invoiceDate1>
+      <dt><br>End Invoice Date (MM/DD/YYYY):
+      <dd><input type=text name=invoiceDate2>
+      <dd><input type=submit value="Lookup Invoices">
+    </dl>
+  </form>
+{% endblock %}

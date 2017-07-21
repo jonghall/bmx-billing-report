@@ -8,8 +8,11 @@ __author__ = 'jonhall'
 import SoftLayer, configparser,csv,logging,time, os
 from flask import Flask, render_template, request, flash, redirect, url_for, send_file, Blueprint
 
-app = Flask(__name__)
-app.secret_key = 'sdfsdf23423sdfsdfsdf'
+bp = Blueprint('bmxbillingreport', __name__,
+                        template_folder='templates',
+                        static_folder='static',
+                        url_prefix='/bmxbillingreport')
+
 
 def getDescription(categoryCode, detail):
     for item in detail:
@@ -18,7 +21,7 @@ def getDescription(categoryCode, detail):
                 return item['description']
     return "Not Found"
 
-@app.route('/invoices', methods=["GET","POST"])
+@bp.route('/invoices', methods=["GET","POST"])
 def getInvoice():
     if request.method == "POST":
         # define global variable for client
@@ -27,7 +30,7 @@ def getInvoice():
         invoiceDate1 = request.form['invoiceDate1']
         invoiceDate2 = request.form['invoiceDate2']
         client = SoftLayer.Client(username=request.form['username'], api_key=request.form['apiKey'])
-        return redirect(url_for('getInvoice'))
+        return redirect(url_for('bmxbillingreport.getInvoice'))
 
 
     # Build Filter for Invoices
@@ -127,15 +130,15 @@ def getTopLevelDetail(item):
            }
     return row
 
-@app.route('/')
+@bp.route('/')
 def input():
     return render_template('input.html')
 
-@app.route('/bmxbillingreport/display')
+@bp.route('/bmxbillingreport/display')
 def display(row):
     return render_template('display.html', row=row)
 
-@app.route('/runreport/<invoiceID>', methods=["POST"])
+@bp.route('/runreport/<invoiceID>', methods=["POST"])
 def runreport(invoiceID):
     outputname = 'invoice-'+str(invoiceID)+'.csv'
     outfile = open(outputname, 'w')
@@ -168,14 +171,16 @@ def runreport(invoiceID):
     return send_file(outputname, mimetype="text/csv", attachment_filename=os.path.basename(outputname),
                      as_attachment=True)
 
-@app.route('/invoiceinfo/<invoiceID>')
+@bp.route('/invoiceinfo/<invoiceID>')
 def invoiceinfo(invoiceID):
     #Get Detail Invoice
 
     invoice = client['Billing_Invoice'].getObject(id=invoiceID,mask="accountId, id, invoiceTotalAmount, companyName, closedDate, itemCount")
-    print (invoice)
+
     return render_template('invoice-info.html', entry=invoice)
 
-
+app = Flask(__name__)
+app.secret_key = 'sdfsdf23423sdfsdfsdf'
+app.register_blueprint(bp)
 if __name__ == "__main__":
     app.run(host='0.0.0.0')

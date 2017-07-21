@@ -2,7 +2,7 @@
 {% block body %}
   <ul class=entries>
   {% for entry in entries %}
-    <li><h2>{{ entry.companyName}} {{(entry.closedDate[0:10])}}</h2> Invoice# <a href="/invoiceinfo/{{entry.id}}">{{entry.id}}</a>
+    <li><h2>{{ entry.companyName}} {{(entry.closedDate[0:10])}}</h2> Invoice# <a href="{{ url_for('bmxbillingreport.invoiceinfo', invoiceID=entry.id) }}">{{entry.id}}</a>
   {% else %}
     <li><em>No invoices found for that date.</em>
   {% endfor %}

@@ -8,7 +8,7 @@
       <li>Invoice Amount: {{entry.invoiceTotalAmount}}</li>
       <li>Invoice Items {{entry.itemCount}}</li>
   </ul>
- <form action="{{ url_for('runreport', invoiceID=entry.id) }}" method=post>
+ <form action="{{ url_for('bmxbillingreport.runreport', invoiceID=entry.id) }}" method=post>
     <dl>
       <dd><input type=submit value="Create CSV">
     </dl>

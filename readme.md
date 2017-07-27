@@ -31,7 +31,7 @@ kubectl get nodes
 kubectl proxy&
 ```
 
-_Go to http://127.0.0.1:8001/ui_
+To access Kubernetes cluste go to:  http://127.0.0.1:8001/ui
 
 ##Create Service & Define ingress point (modify myingress.yaml to include your host & secretName)
 ```
@@ -56,4 +56,4 @@ docker build -t redis-server:latest redis/.
 docker-compose up
 
 ```
-
+Browse to http://localhost:5000/bmxbillingreport

@@ -21,9 +21,10 @@ app = Flask(__name__)
 app.secret_key = 'sdfsdf23423sdfsdfsdf'
 
 app.config['SECRET_KEY'] = "cloud2017"
-app.config['CELERY_BROKER_URL'] = 'redis://redis-server-service.default.svc.cluster.local:6379/0'
-app.config['CELERY_RESULT_BACKEND'] = 'redis://redis-server-service.default.svc.cluster.local:6379/0'
-
+#app.config['CELERY_BROKER_URL'] = 'redis://redis-server-service.default.svc.cluster.local:6379/0'
+#app.config['CELERY_RESULT_BACKEND'] = 'redis://redis-server-service.default.svc.cluster.local:6379/0'
+app.config['CELERY_BROKER_URL'] = 'redis://redis-server:6379/0'
+app.config['CELERY_RESULT_BACKEND'] = 'redis://redis-server:6379/0'
 
 
 celery = Celery(app.name, broker=app.config['CELERY_BROKER_URL'])

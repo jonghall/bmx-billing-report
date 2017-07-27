@@ -33,7 +33,7 @@ kubectl proxy&
 
 To access Kubernetes cluste go to:  http://127.0.0.1:8001/ui
 
-##Create Service & Define ingress point (modify myingress.yaml to include your host & secretName)
+## Create Service & Define ingress point (modify myingress.yaml to include your host & secretName)
 ```
 kubectl apply -f bmx-billing-report-service.yaml
 kubectl apply -f redis/resis-server-service.yaml
@@ -42,14 +42,14 @@ kubectl get svc
 ```
 
 
-##Deploy Application to Kubernetes Cluster
+## Deploy Application to Kubernetes Cluster
 ```
 kubectl create -f bmx-billing-report-deployment.yaml
 kubectl create -f redis/redis-server-deployment.yaml
 kubectl rollout status deployment/bmx-billing-report-deployment
 ```
 
-##To run locally in Docker Community Edition
+## To run locally in Docker Community Edition
 ```
 docker build -t bmxbillingreport:latest .
 docker build -t redis-server:latest redis/.

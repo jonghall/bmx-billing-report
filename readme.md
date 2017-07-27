@@ -1,6 +1,6 @@
 
-## Login into Bluemix Containers 
-##(basic instructions to run in Docker Community Edition at the end of this file)
+## Option A: Login into Bluemix Containers & deploy container service
+## Option B: Instructions to run in Docker Community Edition (docker-compose) at the end of this file)
 ```
 bx login 
 bx cs init
@@ -49,7 +49,7 @@ kubectl create -f redis/redis-server-deployment.yaml
 kubectl rollout status deployment/bmx-billing-report-deployment
 ```
 
-## To run locally in Docker Community Edition
+## To run locally in Docker Community Edition (Option B)
 ```
 docker build -t bmxbillingreport:latest .
 docker build -t redis-server:latest redis/.

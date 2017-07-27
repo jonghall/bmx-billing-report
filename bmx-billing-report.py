@@ -23,9 +23,10 @@ app.secret_key = 'sdfsdf23423sdfsdfsdf'
 app.config['SECRET_KEY'] = "cloud2017"
 #app.config['CELERY_BROKER_URL'] = 'redis://redis-server-service.default.svc.cluster.local:6379/0'
 #app.config['CELERY_RESULT_BACKEND'] = 'redis://redis-server-service.default.svc.cluster.local:6379/0'
-app.config['CELERY_BROKER_URL'] = 'redis://redis-server:6379/0'
-app.config['CELERY_RESULT_BACKEND'] = 'redis://redis-server:6379/0'
-
+#app.config['CELERY_BROKER_URL'] = 'redis://redis-server:6379/0'
+#app.config['CELERY_RESULT_BACKEND'] = 'redis://redis-server:6379/0'
+app.config['CELERY_BROKER_URL'] = 'redis://localhost:6379/0'
+app.config['CELERY_RESULT_BACKEND'] = 'redis://localhost:6379/0'
 
 celery = Celery(app.name, broker=app.config['CELERY_BROKER_URL'])
 celery.conf.update(app.config)
@@ -186,7 +187,6 @@ def detail():
         session['results'] = request.json
         return redirect(url_for("bmxbillingreport.detail"))
     results= session['results']
-    print  (json.dumps(results,indent=2))
     return render_template('detail.html', detail=results)
 
 
@@ -284,7 +284,6 @@ def invoiceinfo(invoiceID):
     invoice = client['Billing_Invoice'].getObject(id=invoiceID,mask="accountId, id, invoiceTotalAmount, companyName, createDate, invoiceTopLevelItemCount")
 
     return render_template('invoice-info.html', entry=invoice)
-
 
 
 

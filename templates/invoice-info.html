@@ -65,9 +65,10 @@
                             url: '/bmxbillingreport/detail',
                             data: JSON.stringify(data['result']),
                             contentType: "application/json; charset=utf-8",
-                            dataType: "json"
+                            success: function(response) {
+                                $("body").html(response)
+                            }
                         });
-                        $('body').load('/bmxbillingreport/detail');
                     }
                     else {
                         // something unexpected happened

@@ -1,19 +1,91 @@
 {% extends "layout.html" %}
-{% block body %}
-  <ul class=entries>
-      <li>AccountID: {{entry.accountId}}</li>
-      <li>InvoiceID: {{entry.id}}</li>
-      <li>Company: {{entry.companyName}}</li>
-      <li>Invoice Date: {{entry.closedDate[0:10]}}</li>
-      <li>Invoice Amount: {{entry.invoiceTotalAmount}}</li>
-      <li>Invoice Items {{entry.itemCount}}</li>
-  </ul>
- <form action="{{ url_for('bmxbillingreport.runreport', invoiceID=entry.id) }}" method=post>
-    <dl>
-      <dd><input type=submit value="Create CSV">
-    </dl>
-  </form>
 
-Depending on the number of items on the invoice this could take a while.
+
+{% block body %}
+
+  <br><br><br>
+    <CENTER><h1>Bluemix Invoice Summary</h1></CENTER>
+        <div class="row">
+            <div class="col-md-4"></div>
+            <div class="col-md-4">
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <h2 class="panel-title">InvoiceID: {{entry.id}}</h2>
+                </div>
+                <div class="panel-body">
+                    <ul class="list-group">
+                        <li class="list-group-item">AccountID: {{ entry.accountId }}</li>
+                        <li class="list-group-item">Company: {{ entry.companyName }}<br></li>
+                        <li class="list-group-item">Invoice Date: {{ entry.createDate[0:10] }}</li>
+                        <li class="list-group-item">Invoice Amount: {{ entry.invoiceTotalAmount }}</li>
+                        <li class="list-group-item">Top Level Items: {{ entry.invoiceTopLevelItemCount }}</li>
+                    </ul>
+                </div>
+            </div>
+
+                <button id="start-bg-job" class="btn btn-lg btn-primary btn-block">Get Invoice Details</button><br><br>
+                <div id="progress"></div>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/nanobar/0.2.1/nanobar.min.js"></script>
+
+    <script>
+        function start_long_task() {
+            // add task status elements
+            div = $('<div class="progress"><div></div><div>0%</div><div>...</div><div>&nbsp;</div></div><hr>');
+            $('#progress').append(div);
+            // create a progress bar
+            var nanobar = new Nanobar({
+                bg: '#44f',
+                target: div[0].childNodes[0]
+            });
+            // send ajax POST request to start background job
+            $.ajax({
+                type: 'POST',
+                url: '{{ url_for('bmxbillingreport.runreport', invoiceID=entry.id) }}',
+                success: function(data, status, request) {
+                    status_url = request.getResponseHeader('Location');
+                    update_progress(status_url, nanobar, div[0]);
+                },
+                error: function() {
+                    alert('Unexpected error');
+                }
+            });
+        }
+        function update_progress(status_url, nanobar, status_div) {
+            // send GET request to status URL
+            $.getJSON(status_url, function(data) {
+                // update UI
+                percent = parseInt(data['current'] * 100 / data['total']);
+                nanobar.go(percent);
+                $(status_div.childNodes[1]).text(percent + '%');
+                $(status_div.childNodes[2]).text(data['status']);
+                if (data['state'] != 'PENDING' && data['state'] != 'PROGRESS') {
+                    if ('result' in data) {
+                        $.ajax({
+                            type: 'POST',
+                            url: '/bmxbillingreport/detail',
+                            data: JSON.stringify(data['result']),
+                            contentType: "application/json; charset=utf-8",
+                            dataType: "json"
+                        });
+                        $('body').load('/bmxbillingreport/detail');
+                    }
+                    else {
+                        // something unexpected happened
+                        $(status_div.childNodes[3]).text('Result: ' + data['state']);
+                    }
+                }
+                else {
+                    // rerun in 2 seconds
+                    setTimeout(function() {
+                        update_progress(status_url, nanobar, status_div);
+                    }, 2000);
+                }
+            });
+        }
+        $(function() {
+            $('#start-bg-job').click(start_long_task);
+        });
+    </script>
+            </div></div>
 {% endblock %}
 

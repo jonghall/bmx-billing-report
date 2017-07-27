@@ -9,5 +9,4 @@ EXPOSE 5000
 
 COPY . .
 
-CMD export FLASK_DEBUG=1
-CMD python bmx-billing-report.py
+CMD ./bmx-billing-report.sh

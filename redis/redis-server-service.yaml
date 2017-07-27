@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: redis-server-service
+  labels:
+    bmx-billing-report: redis-server
+spec:
+  ports:
+  - name: redis-server
+    port: 6379
+    targetPort: 0
+  selector:
+    app: redis-server
+

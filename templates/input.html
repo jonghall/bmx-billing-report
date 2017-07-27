@@ -1,18 +1,35 @@
 {% extends "layout.html" %}
 
 {% block body %}
-  <h2>Credentials</h2>
-  <form action="{{ url_for('bmxbillingreport.getInvoice') }}" method=post>
-    <dl>
-      <dt>Username:
-      <dd><input type=text name=username>
-      <dt>apiKey:
-      <dd><input type=text name=apiKey><br>
-      <dt><br>Start Invoice Date (MM/DD/YYYY):
-      <dd><input type=text name=invoiceDate1>
-      <dt><br>End Invoice Date (MM/DD/YYYY):
-      <dd><input type=text name=invoiceDate2>
-      <dd><input type=submit value="Lookup Invoices">
-    </dl>
-  </form>
+    <br><br><br>
+    <CENTER><h1>Bluemix Billing Report</h1></CENTER>
+     <div class="row">
+        <div class="col-md-4"></div>
+        <div class="col-md-4">
+            <h3 class="form-signin-heading">Bluemix IaaS Credentials</h3>
+
+      <form action="{{ url_for('bmxbillingreport.getInvoice') }}" method=post>
+        <div class="form-group">
+              <label for="username">Username</label>
+              <input type="text" id="username" name=username class="form-control" placeholder="Enter Username" required autofocus>
+          </div>
+          <div class="form-group">
+              <label for="apiKey">apiKey</label>
+              <input type="text" id="apiKey" name=apiKey class="form-control" placeholder="Enter apiKey" required>
+          </div>
+          <br>
+          <h3 class="form-signin-heading">Invoice Date Range</h3>
+          <div class="form-group">
+            <label for="startdate">Start Invoice Date (MM/DD/YYYY)</label>
+            <input type="date" id="startdate" name=startdate class="form-control" placeholder="Enter Start Date" required>
+          </div>
+
+          <div class="form-group">
+            <label for="enddate">End Invoice Date (MM/DD/YYYY)</label>
+            <input type="date" id="enddate" name=enddate class="form-control" placeholder="Enter End Date" required>
+          </div>
+          <button class="btn btn-lg btn-primary btn-block" type="submit">Lookup Invoices</button>
+      </form>
+        </div>
+     </div>
 {% endblock %}

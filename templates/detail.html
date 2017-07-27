@@ -1,0 +1,69 @@
+{% extends "layout.html" %}
+{% block body %}
+
+    <script type="text/javascript" charset="utf-8">
+    $(document).ready(function() {
+            $('#billingItems').DataTable({
+                    dom: 'Bfrtip',
+                    buttons: [
+                        'copy', 'csv', 'excel', 'pageLength'
+                    ],
+                    lengthMenu: [
+                        [ 10, 25, 50, -1 ],
+                        [ '10 rows', '25 rows', '50 rows', 'Show all' ]
+                    ],
+                })
+    } );
+
+
+    </script>
+
+    <br><br><br>
+
+        <div class="panel panel-primary">
+            <div class="panel-heading">
+                <CENTER><h2>Bluemix Invoice Detail</h2></CENTER>
+            </div>
+            <div class="panel-body">
+                {% if detail %}
+                      <table id="billingItems" class="table table-striped table-condensed table-responsive wrap" cellspacing="0" width="100%">
+                          <thead>
+                          <tr>
+                            <th>Invoice</th>
+                            <th>Invoice Date</th>
+                            <th>BillingItemId</th>
+                            <th>BillingType</th>
+                            <th>hostName</th>
+                            <th>Category</th>
+                            <th>Description</th>
+                            <th> Hours</th>
+                            <th>HourlyRate</th>
+                            <th>RecurringCharge</th>
+                            <th>InvoiceTotal</th>
+                          </tr>
+                          </thead>
+                          <tbody>
+                          {% for row in detail %}
+                            <tr>
+                                <td>{{row.invoiceId}}</td>
+                                <td>{{row.invoiceDate}}</td>
+                                <td>{{row.billingItemId}}</td>
+                                <td>{{row.instanceType}}</td>
+                                <td>{{row.hostName}}</td>
+                                <td>{{row.category}}</td>
+                                <td>{{row.description}}</td>
+                                <td>{{row.hours}}</td>
+                                <td>{{row.hourlyRate}}</td>
+                                <td>{{row.recurringCharge}}</td>
+                                <td>{{row.invoiceTotal}}</td>
+                            </tr>
+                          {% endfor %}
+                          </tbody>
+                      </table>
+                {% else %}
+                    <strong><br /><center>Something is wrong, there are no billing items with this invoice.</center></br></strong>
+                {% endif %}
+            </div>
+        </div>
+
+{% endblock %}

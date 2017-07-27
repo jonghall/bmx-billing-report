@@ -1,5 +1,6 @@
 
-## Login into Bluemix Containers
+## Login into Bluemix Containers 
+##(basic instructions to run in Docker Community Edition at the end of this file)
 ```
 bx login 
 bx cs init
@@ -35,8 +36,8 @@ _Go to http://127.0.0.1:8001/ui_
 ##Create Service & Define ingress point (modify myingress.yaml to include your host & secretName)
 ```
 kubectl apply -f bmx-billing-report-service.yaml
-kubectl apply -f bmx-billing-report-ingress.yaml
 kubectl apply -f redis/resis-server-service.yaml
+kubectl apply -f bmx-billing-report-ingress.yaml
 kubectl get svc
 ```
 
@@ -45,17 +46,14 @@ kubectl get svc
 ```
 kubectl create -f bmx-billing-report-deployment.yaml
 kubectl create -f redis/redis-server-deployment.yaml
-kubectl get nodes
-kubectl get deployments
 kubectl rollout status deployment/bmx-billing-report-deployment
-kubectl get pods --show-labels
 ```
 
 ##To run locally in Docker Community Edition
 ```
 docker build -t bmxbillingreport:latest .
 docker build -t redis-server:latest redis/.
-docker run -p6379:6379 -d  --name redis-server redis-server:latest
-docker run -p5000:5000 -d --name bmxbillingreport  bmxbillingreport:latest
+docker-compose up
+
 ```
 

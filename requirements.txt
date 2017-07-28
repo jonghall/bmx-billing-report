@@ -7,6 +7,7 @@ click==6.7
 configparser==3.5.0
 Flask==0.12.2
 Flask-CLI==0.4.0
+Flask-Session==0.3.1
 get==0.0.21
 gunicorn==19.7.1
 idna==2.5
@@ -18,7 +19,7 @@ numpy==1.13.1
 pandas==0.20.3
 post==0.0.13
 prettytable==0.7.2
-prompt-toolkit==1.0.14
+prompt-toolkit==1.0.15
 public==0.0.38
 Pygments==2.2.0
 python-dateutil==2.6.1
@@ -26,12 +27,11 @@ pytz==2017.2
 query-string==0.0.12
 redis==2.10.5
 request==0.0.13
-requests==2.18.1
+requests==2.18.2
 setupfiles==0.0.50
 six==1.10.0
 SoftLayer==5.2.7
 urllib3==1.21.1
 vine==1.1.4
-virtualenv==15.1.0
 wcwidth==0.1.7
 Werkzeug==0.12.2

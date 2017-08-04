@@ -26,13 +26,12 @@
                 <button id="start-bg-job" class="btn btn-lg btn-primary btn-block">Get Invoice Details</button><br><br>
                 <div id="progress"> </div></div></div>
     <script src="//cdnjs.cloudflare.com/ajax/libs/nanobar/0.2.1/nanobar.min.js"></script>
-
     <script>
         function start_long_task() {
             // Disable Button
             $(this).attr('disabled', true);
             // Add Div for Progress Bar
-            div = $('<div class="progress"><div></div><div>1%</div><div>...</div><div>&nbsp;</div></div><hr>');
+            div = $('<div class="progress"><div></div><div>0%</div><div>...</div><div>&nbsp;</div></div><hr>');
             $('#progress').append(div);
             // create a progress bar
             var nanobar = new Nanobar({
@@ -60,7 +59,7 @@
                 nanobar.go(percent);
                 $(status_div.childNodes[1]).text(percent + '%');
                 $(status_div.childNodes[2]).text(data['status']);
-                if (data['state'] !== 'PENDING' && data['state'] !== 'PROGRESS') {
+                if (data['state'] != 'PENDING' && data['state'] != 'PROGRESS') {
                     if ('result' in data) {
                         $.ajax({
                             type: 'POST',
@@ -74,11 +73,10 @@
                     }
                     else {
                         // something unexpected happened
-                        $(status_div.childNodes[3]).text('Result: ' + data['state']);
+                        $(status_div.childNodes[2]).text('Result: ' + data['state']);
                     }
                 }
                 else {
-                    // rerun in 2 seconds
                     setTimeout(function() {
                         update_progress(status_url, nanobar, status_div);
                     }, 2000);

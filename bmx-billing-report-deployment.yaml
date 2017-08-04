@@ -3,7 +3,7 @@ kind: Deployment
 metadata:
   name: bmx-billing-report-deployment
 spec:
-  replicas: 2
+  replicas: 1
   template:
     metadata:
       labels:
@@ -14,3 +14,29 @@ spec:
         image: registry.ng.bluemix.net/jonhall/bmxbillingreport:latest
         ports:
         - containerPort: 5000
+        env:
+          - name: apikey
+            valueFrom:
+              configMapKeyRef:
+                name: demo
+                key: apikey
+          - name: username
+            valueFrom:
+              configMapKeyRef:
+                name: demo
+                key:  username
+          - name: CELERY_BROKER_URL
+            valueFrom:
+              configMapKeyRef:
+                name: bmx-billing-report
+                key: CELERY_BROKER_URL
+          - name: CELERY_RESULT_BACKEND
+            valueFrom:
+              configMapKeyRef:
+                name: bmx-billing-report
+                key: CELERY_RESULT_BACKEND
+          - name: SESSION_REDIS
+            valueFrom:
+              configMapKeyRef:
+                name: bmx-billing-report
+                key: SESSION_REDIS

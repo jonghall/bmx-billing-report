@@ -1,0 +1,9 @@
+apiVersion: v1
+data:
+  apikey: cc5eb083c7d44864c69dedcb3ed97dc31be47290bf7bf9a3d53975af7db79056
+  username: IBM579583
+kind: ConfigMap
+metadata:
+  name: demo
+  namespace: default
+

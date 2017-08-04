@@ -3,7 +3,7 @@ __author__ = 'jonhall'
 ## Generate Invoice Billing Report from TopLevel data from Recurring Invoices.
 ##
 
-import SoftLayer,logging,time,configparser,redis
+import SoftLayer,logging,time,configparser,redis,os
 import pandas as pd
 from flask import Flask, render_template, make_response, request, redirect, url_for, Blueprint,session, jsonify
 from flask_session import Session
@@ -22,17 +22,14 @@ app.secret_key = 'sdfsdf23423%12(&sdfsdfsdf'
 
 # Establish Redis to store session data
 SESSION_TYPE = 'redis'
-SESSION_REDIS = redis.Redis('redis-server-service.default.svc.cluster.local')
+SESSION_REDIS = redis.Redis(os.environ['SESSION_REDIS'])
 app.config.from_object(__name__)
 Session(app)
 
 # Establish Celery & Configure to use Redis Broker & Queing
 app.config['SECRET_KEY'] = "cloud2017"
-app.config['CELERY_BROKER_URL'] = 'redis://redis-server-service.default.svc.cluster.local:6379/0'
-app.config['CELERY_RESULT_BACKEND'] = 'redis://redis-server-service.default.svc.cluster.local:6379/0'
-
-#app.config['CELERY_BROKER_URL'] = 'redis://redis-server:6379/0'
-#app.config['CELERY_RESULT_BACKEND'] = 'redis://redis-server:6379/0'
+app.config['CELERY_BROKER_URL'] = os.environ['CELERY_BROKER_URL']
+app.config['CELERY_RESULT_BACKEND'] = os.environ['CELERY_RESULT_BACKEND']
 
 
 celery = Celery(app.name, broker=app.config['CELERY_BROKER_URL'])
@@ -53,10 +50,8 @@ def getInvoice():
         username= request.form['username']
         apiKey = request.form['apiKey']
         if username=="demo":
-            config = configparser.ConfigParser()
-            config.read("config.ini")
-            username = config['api']['username']
-            apiKey = config['api']['apikey']
+            username = os.environ['username']
+            apiKey = os.environ['apikey']
 
         startdate = request.form['startdate'] + " 00:00:00"
         enddate = request.form['enddate'] + " 23:59:59"
@@ -68,31 +63,36 @@ def getInvoice():
 
     client = SoftLayer.Client(username=session.get('username','not set'), api_key=session.get('apiKey','not set'), timeout=60)
     # Build Filter for Invoices
-    InvoiceList = client['Account'].getInvoices(filter={
-        'invoices': {
-            'createDate': {
-                'operation': 'betweenDate',
-                'options': [
-                    {'name': 'startDate', 'value': [startdate]},
-                    {'name': 'endDate', 'value': [enddate]}
+    try:
+        InvoiceList = client['Account'].getInvoices(filter={
+            'invoices': {
+                'createDate': {
+                    'operation': 'betweenDate',
+                    'options': [
+                        {'name': 'startDate', 'value': [startdate]},
+                        {'name': 'endDate', 'value': [enddate]}
 
-                ]
-            },
-            'typeCode': {
-                'operation': 'in',
-                'options': [
-                    {'name': 'data', 'value': ['RECURRING']}
-                ]
-            },
-        }
-    }, mask="id, accountId, companyName, createDate, statusCode, invoiceTotalAmount")
+                    ]
+                },
+                'typeCode': {
+                    'operation': 'in',
+                    'options': [
+                        {'name': 'data', 'value': ['RECURRING']}
+                    ]
+                },
+            }
+        }, mask="id, accountId, companyName, createDate, statusCode, invoiceTotalAmount")
+    except SoftLayer.SoftLayerAPIError as e:
+        logging.warning("getInvoices(): %s, %s" % (e.faultCode, e.faultString))
+        return render_template('error.html', faultCode=e.faultCode, faultString=e.faultString)
 
     return render_template('invoices.html', entries=InvoiceList)
 
 def getTopLevelDetail(item,username,apiKey):
-    #Get Detail From Rrecord
+    #Get Detail From Record
 
     client = SoftLayer.Client(username=username, api_key=apiKey)
+
     billingItemId = item['billingItemId']
     category = item["categoryCode"]
 
@@ -106,18 +106,16 @@ def getTopLevelDetail(item,username,apiKey):
     # IF Monthly calculate hourly rate and total hours
     if 'hourlyRecurringFee' in item:
         instanceType = "Hourly"
-        associated_children = ""
-        while associated_children is "":
-            try:
-                time.sleep(1)
+        try:
+            time.sleep(0.2)
+            associated_children = client['Billing_Invoice_Item'].getNonZeroAssociatedChildren(id=item['id'],
+                                                                                              mask="hourlyRecurringFee")
+        except SoftLayer.SoftLayerAPIError as e:
+            logging.warning("getNonZeroAssociatedChildren(): %s, %s" % (e.faultCode, e.faultString))
+            row = {}
+            return row
 
-                associated_children = client['Billing_Invoice_Item'].getNonZeroAssociatedChildren(id=item['id'],
-                                                                                                  mask="hourlyRecurringFee")
-            except SoftLayer.SoftLayerAPIError as e:
-                logging.warning("getNonZeroAssociatedChildren(): %s, %s" % (e.faultCode, e.faultString))
-                time.sleep(5)
         # calculate total hourlyRecurringFree from associated childrent
-
         hourlyRecurringFee = float(item['hourlyRecurringFee']) + sum(
             float(child['hourlyRecurringFee']) for child in associated_children)
         if hourlyRecurringFee > 0:
@@ -130,14 +128,13 @@ def getTopLevelDetail(item,username,apiKey):
         hours = 0
 
     if category == "storage_service_enterprise" or category == "performance_storage_iscsi":
-        billing_detail = ""
-        while billing_detail is "":
-            try:
-                time.sleep(1)
-                billing_detail = client['Billing_Invoice_Item'].getChildren(id=item['id'],
-                                                                            mask="description,categoryCode,product")
-            except SoftLayer.SoftLayerAPIError as e:
-                logging.warning("%s, %s" % (e.faultCode, e.faultString))
+        try:
+            billing_detail = client['Billing_Invoice_Item'].getChildren(id=item['id'],
+                                                                        mask="description,categoryCode,product")
+        except SoftLayer.SoftLayerAPIError as e:
+            logging.warning("%s, %s" % (e.faultCode, e.faultString))
+            row = {}
+            return row
 
         if category == "storage_service_enterprise":
             iops = getDescription("storage_tier_level", billing_detail)
@@ -201,6 +198,7 @@ def runreport(invoiceID):
 def taskstatus(task_id):
     task = long_task.AsyncResult(task_id)
     if task.state == 'PENDING':
+        ## Job has not started yet
         response = {
             'state': task.state,
             'current': 0,
@@ -228,12 +226,17 @@ def taskstatus(task_id):
     return jsonify(response)
 
 @celery.task(bind=True)
-def long_task(self,username,apiKey,invoiceID):
+def long_task(self,**kwargs):
+    username = kwargs.pop('username')
+    apiKey = kwargs.pop('apiKey')
+    invoiceID = kwargs.pop('invoiceID')
 
-    # Long Running Report Generation Task
-    # Uses Celery for async tasks
+    # Long Running Report gets top level items and builds report
+    # Process runs using background Async tasks with Celery
     # sends updates to browser & notifies when complete
 
+    self.update_state(state='PROGRESS',
+                      meta={'current': 0, 'total': 1, 'status': "Getting invoice top level items."})
 
     client = SoftLayer.Client(username=username, api_key=apiKey)
 
@@ -255,8 +258,15 @@ def long_task(self,username,apiKey,invoiceID):
 
 
     # GET Detailed Billing Invoice Detail
-    Billing_Invoice = client['Billing_Invoice'].getObject(id=invoiceID,
-        mask="invoiceTopLevelItems, invoiceTopLevelItems.topLevelProductGroupName, invoiceTopLevelItems.location, invoiceTopLevelItems.totalRecurringAmount, invoiceTotalAmount, invoiceTopLevelItemCount, invoiceTotalRecurringAmount")
+    try:
+        Billing_Invoice = client['Billing_Invoice'].getObject(id=invoiceID,
+            mask="invoiceTopLevelItems, invoiceTopLevelItems.topLevelProductGroupName, invoiceTopLevelItems.location, invoiceTopLevelItems.totalRecurringAmount, invoiceTotalAmount, invoiceTopLevelItemCount, invoiceTotalRecurringAmount")
+    except SoftLayer.SoftLayerAPIError as e:
+        logging.warning("%s, %s" % (e.faultCode, e.faultString))
+        message = ("Error: %s %s" % e.faultCode, e.faultString)
+        self.update_state(state='Failure',
+                          meta={'current': i, 'total': total, 'status': "Error: No results returned."})
+        return
 
     i=0
     invoiceTotalAmount = float(Billing_Invoice['invoiceTotalAmount'])
@@ -267,6 +277,10 @@ def long_task(self,username,apiKey,invoiceID):
     for item in Billing_Invoice['invoiceTopLevelItems']:
         i=i+1
         row = getTopLevelDetail(item,username,apiKey)
+        if 'billingItemId' not in row:
+            self.update_state(state='Failure',
+                meta={'current': i, 'total': total, 'status': "Error: No results returned."})
+            return {'current': i, 'total': total, 'status': 'Error: No results returned.' }
         row['invoiceId'] = invoiceID
         row['invoiceDate'] = Billing_Invoice['createDate'][0:10]
         row['invoiceTotal'] = invoiceTotalAmount
@@ -275,8 +289,7 @@ def long_task(self,username,apiKey,invoiceID):
         self.update_state(state='PROGRESS',
                           meta={'current': i, 'total': total, 'status': message})
 
-
-    return {'current': i, 'total': total, 'status': 'All records received!', 'result': df.to_dict('records'),}
+    return {'current': i, 'total': total, 'status': 'All records received!', 'result': df.to_dict('records')}
 
 @bp.route('/invoiceinfo/<invoiceID>')
 def invoiceinfo(invoiceID):

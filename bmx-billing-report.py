@@ -97,7 +97,9 @@ def getTopLevelDetail(item,username,apiKey):
     category = item["categoryCode"]
 
     if 'hostName' in item:
-        hostName = item['hostName'] + "." + item['domainName']
+        hostName = item['hostName']
+        if 'domainName' in item:
+               hostName = hostName + "." + item['domainName']
     else:
         hostName = "Unnamed Device"
 
